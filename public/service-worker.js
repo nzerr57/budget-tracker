@@ -1,3 +1,4 @@
+//Files to cache for offline use
 const FILES_TO_CACHE = [
     "./",
     "./index.html",
@@ -6,7 +7,9 @@ const FILES_TO_CACHE = [
     "./icons/icon-192x192.png",
     "./icons/icon-512x512.png",
     "./manifest.webmanifest.json",
-    "./db.js"
+    "./db.js",
+    "https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css",
+    "https://cdn.jsdelivr.net/npm/chart.js@2.8.0"
   ];
   
   const CACHE_NAME = 'static-cache-v1';
@@ -16,13 +19,12 @@ const DATA_CACHE_NAME = 'data-cache-v1';
 self.addEventListener('install', (e) => {
     e.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
-            console.log('Your files were pre-cached successfully!');
+            console.log('Files were pre-cached successfully!');
             return cache.addAll(FILES_TO_CACHE);
         })
     );
     self.skipWaiting();
 });
-
 
 // fetch information from cache
 self.addEventListener('fetch', (e) => {
@@ -32,19 +34,17 @@ self.addEventListener('fetch', (e) => {
             caches.open(DATA_CACHE_NAME).then(cache => {
                     return fetch(e.request)
                         .then(res => {
-                            // if successful, clone and store into cache
+                            // stores into cache if successful
                             if (res.status === 200) {
                                 cache.put(e.request.url, res.clone());
                             }
 
                             return res;
-                            // if network request fails, get from cache instead
                         }).catch(err => cache.match(e.request));
                 }).catch(err => console.log(err))
         );
         return;
     }
-    // if no api, then use static assets
     e.respondWith(
         caches.match(e.request)
             .then(res => res || fetch(e.request))
